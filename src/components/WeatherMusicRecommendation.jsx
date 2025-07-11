@@ -23,20 +23,27 @@ export default function WeatherMusicRecommendation({ weather, musicRecommendatio
 
 
   const openInSpotifyApp = (url) => {
-    // Spotify 앱 URI로 변환
-    const spotifyUri = url.replace('https://open.spotify.com/', 'spotify:');
+    // Spotify URI 추출 (예: https://open.spotify.com/track/4iV5W9uYEdYUVa79Axb7Rh)
+    const trackId = url.split('/track/')[1];
+    
+    // 여러 방법으로 재생 시도
+    const playMethods = [
+      `spotify:track:${trackId}:play`,           // 바로 재생 (최신)
+      `spotify:play:spotify:track:${trackId}`,   // 바로 재생 (대안)
+      `spotify:track:${trackId}`                 // 기본 (fallback)
+    ];
     
     // 브라우저 감지
     const isChrome = /Chrome/.test(navigator.userAgent);
     const isFirefox = /Firefox/.test(navigator.userAgent);
     
     // 앱 열기 시도
-    const tryOpenApp = () => {
+    const tryOpenApp = (uri) => {
       if (isChrome || isFirefox) {
         // Chrome/Firefox에서는 iframe 사용
         const iframe = document.createElement('iframe');
         iframe.style.display = 'none';
-        iframe.src = spotifyUri;
+        iframe.src = uri;
         document.body.appendChild(iframe);
         
         setTimeout(() => {
@@ -44,7 +51,28 @@ export default function WeatherMusicRecommendation({ weather, musicRecommendatio
         }, 1000);
       } else {
         // Safari나 다른 브라우저에서는 직접 링크 사용
-        window.location.href = spotifyUri;
+        window.location.href = uri;
+      }
+    };
+    
+    // 앱 열기 시도 (원래 방식으로 복구)
+    const tryPlayInApp = () => {
+      // 기본 재생 URI
+      const playUri = `spotify:track:${trackId}:play`;
+      
+      if (isChrome || isFirefox) {
+        // Chrome/Firefox에서는 iframe 사용
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        iframe.src = playUri;
+        document.body.appendChild(iframe);
+        
+        setTimeout(() => {
+          document.body.removeChild(iframe);
+        }, 1000);
+      } else {
+        // Safari나 다른 브라우저에서는 직접 링크 사용
+        window.location.href = playUri;
       }
     };
     
@@ -55,8 +83,9 @@ export default function WeatherMusicRecommendation({ weather, musicRecommendatio
     const checkIfAppOpened = () => {
       const elapsedTime = Date.now() - startTime;
       
-      // 2초 후에도 포커스가 그대로면 앱이 안 열린 것으로 간주
-      if (elapsedTime > 2000 && !appOpened) {
+      // 3초 후에도 포커스가 그대로면 앱이 안 열린 것으로 간주하고 웹으로 fallback
+      if (elapsedTime > 3000 && !appOpened) {
+        toast.info('Spotify 앱을 찾을 수 없어 웹에서 열었습니다.');
         window.open(url, '_blank');
       }
     };
@@ -80,10 +109,10 @@ export default function WeatherMusicRecommendation({ weather, musicRecommendatio
     
     // 앱 열기 시도
     toast.loading('Spotify 앱을 여는 중...', { id: 'spotify-opening' });
-    tryOpenApp();
+    tryPlayInApp();
     
-    // 체크 타이머
-    setTimeout(checkIfAppOpened, 2500);
+    // 체크 타이머 (3초로 늘림)
+    setTimeout(checkIfAppOpened, 3500);
     
     // 이벤트 리스너 제거
     setTimeout(() => {
@@ -100,9 +129,9 @@ export default function WeatherMusicRecommendation({ weather, musicRecommendatio
 
   const TrackCard = ({ track }) => {
     return (
-      <Card className="bg-white/5 backdrop-blur-md border-white/10 hover:bg-white/10 transition-all duration-300 hover:shadow-xl hover:scale-[1.01]">
+      <Card className="bg-white/5 backdrop-blur-md border-white/10 hover:bg-white/10 transition-all duration-300 hover:shadow-xl hover:scale-[1.01] w-full max-w-full">
         <CardContent className="p-4">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 w-full max-w-full overflow-hidden">
             {/* 앨범 커버 이미지 */}
             <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-white/10 backdrop-blur-sm flex-shrink-0">
               {track.album_image ? (
@@ -121,9 +150,24 @@ export default function WeatherMusicRecommendation({ weather, musicRecommendatio
             </div>
             
             <div className="flex-1 min-w-0">
-              <h4 className="font-semibold text-white mb-1 text-base truncate">{track.name}</h4>
-              <p className="text-white/70 text-sm truncate">{track.artists.join(', ')}</p>
-              <p className="text-white/50 text-xs truncate">{track.album}</p>
+              <h4 
+                className="font-semibold text-white mb-1 text-base truncate cursor-help" 
+                title={track.name}
+              >
+                {track.name}
+              </h4>
+              <p 
+                className="text-white/70 text-sm truncate cursor-help" 
+                title={track.artists.join(', ')}
+              >
+                {track.artists.join(', ')}
+              </p>
+              <p 
+                className="text-white/50 text-xs truncate cursor-help" 
+                title={track.album}
+              >
+                {track.album}
+              </p>
             </div>
             
             <div className="flex gap-2 flex-shrink-0">
@@ -214,6 +258,12 @@ export default function WeatherMusicRecommendation({ weather, musicRecommendatio
             <CardDescription className="text-white/80 text-lg leading-relaxed">
               {musicRecommendation.reason}
             </CardDescription>
+            <div className="mt-4 p-3 bg-blue-500/10 rounded-lg border border-blue-500/20">
+              <p className="text-blue-200 text-sm">
+                💡 <strong>팁:</strong> 다른 음악이 재생 중일 때는 Spotify에서 수동으로 재생해주세요. 
+                Spotify 정책상 자동으로 현재 재생 중인 음악을 바꿀 수 없습니다.
+              </p>
+            </div>
           </div>
           <div className="flex flex-wrap gap-3 mt-6">
             <span className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-white px-4 py-2 rounded-full text-sm font-medium border border-white/20">
@@ -226,7 +276,7 @@ export default function WeatherMusicRecommendation({ weather, musicRecommendatio
         </CardHeader>
         <CardContent>
           {musicRecommendation.tracks.length > 0 ? (
-            <div className="grid gap-3">
+            <div className="grid gap-3 max-w-full">
               {musicRecommendation.tracks.map((track) => (
                 <TrackCard key={track.id} track={track} />
               ))}
