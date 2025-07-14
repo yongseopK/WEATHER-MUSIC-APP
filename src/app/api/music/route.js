@@ -25,11 +25,14 @@ const getAccessToken = async () => {
   return data.access_token;
 };
 
-const searchTracks = async (query, limit = 10) => {
+const searchTracks = async (query, limit = 50) => {
   const token = await getAccessToken();
   
+  // 음악 트랙만 가져오기 위한 쿼리 개선 + 인기도 높은 곡들 위주로 검색
+  const musicQuery = `${query} NOT podcast NOT audiobook NOT talk NOT speech`;
+  
   const response = await fetch(
-    `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=${limit}`,
+    `https://api.spotify.com/v1/search?q=${encodeURIComponent(musicQuery)}&type=track&limit=${limit}&market=KR`,
     {
       headers: {
         'Authorization': `Bearer ${token}`
@@ -43,15 +46,68 @@ const searchTracks = async (query, limit = 10) => {
 
   const data = await response.json();
   
-  return data.tracks.items.map((track) => ({
-    id: track.id,
-    name: track.name,
-    artists: track.artists.map((artist) => artist.name),
-    album: track.album.name,
-    preview_url: track.preview_url,
-    external_urls: track.external_urls,
-    album_image: track.album.images?.[0]?.url || null // 앨범 커버 이미지 추가
-  }));
+  // 음악 트랙만 필터링하고 인기도 기준으로 정렬
+  const filteredTracks = data.tracks.items
+    .filter((track) => {
+      // 음악 트랙만 허용 (팟캐스트, 오디오북 등 제외)
+      return track.type === 'track' && 
+             track.album && 
+             track.album.album_type !== 'compilation' && // 컴필레이션 제외
+             track.artists && track.artists.length > 0 &&
+             track.duration_ms > 30000 && // 30초 이상만 (짧은 광고/효과음 제외)
+             track.duration_ms < 600000 && // 10분 이하만 (긴 팟캐스트 제외)
+             track.popularity >= 30; // 인기도 30 이상만 (더 알려진 곡들)
+    })
+    .map((track) => ({
+      id: track.id,
+      name: track.name,
+      artists: track.artists.map((artist) => artist.name),
+      album: track.album.name,
+      preview_url: track.preview_url,
+      external_urls: track.external_urls,
+      album_image: track.album.images?.[0]?.url || null,
+      explicit: track.explicit || false, // 성인 컨텐츠 표시
+      duration_ms: track.duration_ms,
+      popularity: track.popularity,
+      primary_artist: track.artists[0].name, // 메인 아티스트
+      album_id: track.album.id // 앨범 ID
+    }))
+    .sort((a, b) => b.popularity - a.popularity); // 인기도 높은 순으로 정렬
+
+  // 상위 인기곡들에서 일부 랜덤성 추가 (너무 뻔하지 않게)
+  const topTracks = filteredTracks.slice(0, 30); // 상위 30곡만 선택
+  const shuffledTracks = [...topTracks].sort(() => Math.random() - 0.5);
+  
+  // 다양성을 위한 중복 제거 (같은 아티스트 최대 2곡, 같은 앨범 최대 1곡)
+  const diversifiedTracks = [];
+  const artistCount = {};
+  const albumSet = new Set();
+  
+  for (const track of shuffledTracks) {
+    const artist = track.primary_artist;
+    const albumId = track.album_id;
+    
+    // 같은 앨범은 1곡만
+    if (albumSet.has(albumId)) {
+      continue;
+    }
+    
+    // 같은 아티스트는 최대 2곡만
+    if (artistCount[artist] && artistCount[artist] >= 2) {
+      continue;
+    }
+    
+    diversifiedTracks.push(track);
+    albumSet.add(albumId);
+    artistCount[artist] = (artistCount[artist] || 0) + 1;
+    
+    // 10곡 채우면 중단
+    if (diversifiedTracks.length >= 10) {
+      break;
+    }
+  }
+
+  return diversifiedTracks;
 };
 
 export async function GET(request) {
@@ -140,17 +196,16 @@ export async function GET(request) {
       searchQuery += ` ${randomKpopKeyword}`;
     }
 
-    // 다양성을 위한 랜덤 키워드 풀
-    const diversityKeywords = [
-      "popular", "trending", "classic", "hit", "favorite", "best", 
-      "new", "fresh", "smooth", "acoustic", "instrumental", "vocal",
-      "melodic", "rhythmic", "atmospheric", "vibrant", "soothing"
+    // 인기곡 위주의 키워드 풀
+    const popularityKeywords = [
+      "popular", "trending", "hit", "chart", "billboard", "top", "mainstream",
+      "famous", "viral", "bestseller", "classic", "iconic", "well-known"
     ];
     
-    // 랜덤 다양성 키워드 1-2개 추가
+    // 인기곡 키워드 1-2개 추가
     const numRandomKeywords = Math.floor(Math.random() * 2) + 1;
     for (let i = 0; i < numRandomKeywords; i++) {
-      const randomKeyword = diversityKeywords[Math.floor(Math.random() * diversityKeywords.length)];
+      const randomKeyword = popularityKeywords[Math.floor(Math.random() * popularityKeywords.length)];
       searchQuery += ` ${randomKeyword}`;
     }
 
