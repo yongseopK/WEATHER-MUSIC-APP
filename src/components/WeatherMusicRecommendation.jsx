@@ -130,34 +130,41 @@ export default function WeatherMusicRecommendation({ weather, musicRecommendatio
   const TrackCard = ({ track }) => {
     return (
       <Card className="bg-white/5 backdrop-blur-md border-white/10 hover:bg-white/10 transition-all duration-300 hover:shadow-xl hover:scale-[1.01] w-full max-w-full">
-        <CardContent className="p-4">
+        <CardContent className="p-3 sm:p-4">
           <div className="flex items-center gap-3 w-full max-w-full overflow-hidden">
             {/* 앨범 커버 이미지 */}
-            <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-white/10 backdrop-blur-sm flex-shrink-0">
+            <div className="relative w-10 h-10 sm:w-12 sm:h-12 rounded-lg overflow-hidden bg-white/10 backdrop-blur-sm flex-shrink-0">
               {track.album_image ? (
                 <Image
                   src={track.album_image}
                   alt={`${track.album} album cover`}
                   fill
                   className="object-cover"
-                  sizes="48px"
+                  sizes="(max-width: 640px) 40px, 48px"
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
-                  <Disc className="w-6 h-6 text-white/40" />
+                  <Disc className="w-5 h-5 sm:w-6 sm:h-6 text-white/40" />
                 </div>
               )}
             </div>
             
             <div className="flex-1 min-w-0">
-              <h4 
-                className="font-semibold text-white mb-1 text-base truncate cursor-help" 
-                title={track.name}
-              >
-                {track.name}
-              </h4>
+              <div className="flex items-center gap-2 mb-1">
+                <h4 
+                  className="font-semibold text-white text-sm sm:text-base truncate cursor-help flex-1" 
+                  title={track.name}
+                >
+                  {track.name}
+                </h4>
+                {track.explicit && (
+                  <span className="bg-red-500 text-white text-xs px-1.5 sm:px-2 py-0.5 rounded-full font-bold flex-shrink-0">
+                    E
+                  </span>
+                )}
+              </div>
               <p 
-                className="text-white/70 text-sm truncate cursor-help" 
+                className="text-white/70 text-xs sm:text-sm truncate cursor-help" 
                 title={track.artists.join(', ')}
               >
                 {track.artists.join(', ')}
@@ -170,7 +177,7 @@ export default function WeatherMusicRecommendation({ weather, musicRecommendatio
               </p>
             </div>
             
-            <div className="flex gap-2 flex-shrink-0">
+            <div className="flex gap-1.5 sm:gap-2 flex-shrink-0">
               {track.preview_url && (
                 <Button
                   size="sm"
@@ -179,21 +186,21 @@ export default function WeatherMusicRecommendation({ weather, musicRecommendatio
                     const audio = new Audio(track.preview_url);
                     audio.play();
                   }}
-                  className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white border-none px-3 py-2 rounded-full transition-all duration-300 hover:shadow-lg"
+                  className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white border-none px-2 sm:px-3 py-2 rounded-full transition-all duration-300 hover:shadow-lg"
                   title="미리 듣기"
                 >
-                  <Play className="w-4 h-4" />
+                  <Play className="w-3 h-3 sm:w-4 sm:h-4" />
                 </Button>
               )}
               <Button
                 size="sm"
                 variant="outline"
                 onClick={() => openInSpotifyApp(track.external_urls.spotify)}
-                className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white border-none px-3 py-2 rounded-full transition-all duration-300 hover:shadow-lg"
+                className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white border-none px-2 sm:px-3 py-2 rounded-full transition-all duration-300 hover:shadow-lg"
                 title="Spotify에서 듣기"
               >
                 {/* Spotify 아이콘 */}
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.84-.179-.959-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.361 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.48.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.42 1.56-.299.421-1.02.599-1.559.3z"/>
                 </svg>
               </Button>
@@ -205,36 +212,36 @@ export default function WeatherMusicRecommendation({ weather, musicRecommendatio
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8">
+    <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8 px-4 sm:px-6 lg:px-8">
       {/* 날씨 정보 카드 */}
       <Card className="bg-white/5 backdrop-blur-md border-white/10 shadow-2xl">
-        <CardHeader className="pb-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-6">
-                  <div className="relative">
+        <CardHeader className="pb-4 sm:pb-6">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-0">
+                <div className="flex items-center gap-4 sm:gap-6 w-full sm:w-auto">
+                  <div className="relative flex-shrink-0">
                     <div className="absolute inset-0 bg-white/20 rounded-full blur-xl"></div>
-                    <div className="relative text-7xl filter drop-shadow-lg">
+                    <div className="relative text-5xl sm:text-6xl lg:text-7xl filter drop-shadow-lg">
                       {getWeatherIcon(weather.condition)}
                     </div>
                   </div>
-                  <div>
-                    <CardTitle className="text-3xl text-white mb-2 font-bold">
+                  <div className="min-w-0 flex-1">
+                    <CardTitle className="text-xl sm:text-2xl lg:text-3xl text-white mb-2 font-bold truncate">
                       {weather.location}
                     </CardTitle>
-                    <div className="flex items-center gap-4">
-                      <CardDescription className="text-white/90 text-2xl font-semibold">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                      <CardDescription className="text-white/90 text-xl sm:text-2xl font-semibold">
                         {weather.temperature}°C
                       </CardDescription>
-                      <div className="h-8 w-px bg-white/30"></div>
-                      <p className="text-white/70 text-lg capitalize font-medium">
+                      <div className="hidden sm:block h-8 w-px bg-white/30"></div>
+                      <p className="text-white/70 text-base sm:text-lg capitalize font-medium">
                         {weather.description}
                       </p>
                     </div>
                   </div>
                 </div>
-                <div className="text-right">
+                <div className="text-left sm:text-right w-full sm:w-auto">
                   <p className="text-white/50 text-sm">현재 시각</p>
-                  <p className="text-white/80 text-lg font-medium">
+                  <p className="text-white/80 text-base sm:text-lg font-medium">
                     {new Date().toLocaleTimeString('ko-KR', { 
                       hour: '2-digit', 
                       minute: '2-digit' 
@@ -247,29 +254,29 @@ export default function WeatherMusicRecommendation({ weather, musicRecommendatio
 
       {/* 음악 추천 카드 */}
       <Card className="bg-white/5 backdrop-blur-md border-white/10 shadow-2xl">
-        <CardHeader className="pb-6">
+        <CardHeader className="pb-4 sm:pb-6">
           <div>
-            <CardTitle className="text-3xl text-white flex items-center gap-3 mb-4">
+            <CardTitle className="text-2xl sm:text-3xl text-white flex items-center gap-3 mb-4">
               <div className="p-2 bg-gradient-to-r from-green-500 to-blue-500 rounded-full">
-                <Music className="w-6 h-6 text-white" />
+                <Music className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
               AI 음악 추천
             </CardTitle>
-            <CardDescription className="text-white/80 text-lg leading-relaxed">
+            <CardDescription className="text-white/80 text-base sm:text-lg leading-relaxed">
               {musicRecommendation.reason}
             </CardDescription>
             <div className="mt-4 p-3 bg-blue-500/10 rounded-lg border border-blue-500/20">
-              <p className="text-blue-200 text-sm">
+              <p className="text-blue-200 text-sm sm:text-base">
                 💡 <strong>팁:</strong> 다른 음악이 재생 중일 때는 Spotify에서 수동으로 재생해주세요. 
                 Spotify 정책상 자동으로 현재 재생 중인 음악을 바꿀 수 없습니다.
               </p>
             </div>
           </div>
-          <div className="flex flex-wrap gap-3 mt-6">
-            <span className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-white px-4 py-2 rounded-full text-sm font-medium border border-white/20">
+          <div className="flex flex-wrap gap-2 sm:gap-3 mt-6">
+            <span className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-white px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium border border-white/20">
               {musicRecommendation.genre}
             </span>
-            <span className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-white px-4 py-2 rounded-full text-sm font-medium border border-white/20">
+            <span className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-white px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium border border-white/20">
               {musicRecommendation.mood}
             </span>
           </div>

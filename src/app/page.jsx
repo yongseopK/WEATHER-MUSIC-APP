@@ -205,15 +205,15 @@ export default function Home() {
       {/* 날씨별 특수 효과 */}
       {getWeatherEffects()}
       
-      <div className="relative z-10 container mx-auto px-4 py-8">
-        <header className="text-center mb-12">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mb-6 shadow-2xl">
-            <span className="text-3xl">🎵</span>
+      <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <header className="text-center mb-8 sm:mb-12">
+          <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mb-4 sm:mb-6 shadow-2xl">
+            <span className="text-2xl sm:text-3xl">🎵</span>
           </div>
-          <h1 className="text-5xl font-bold text-white mb-4 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-3 sm:mb-4 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
             WeatherBeats
           </h1>
-          <p className="text-white/70 text-xl max-w-2xl mx-auto leading-relaxed">
+          <p className="text-white/70 text-base sm:text-lg lg:text-xl max-w-2xl mx-auto leading-relaxed px-4">
             현재 날씨에 완벽하게 어울리는 음악을 AI가 추천해드립니다
           </p>
         </header>
@@ -225,15 +225,15 @@ export default function Home() {
           />
         )}
 
-        <div className="text-center mt-12">
+        <div className="text-center mt-8 sm:mt-12">
           <Button
             onClick={handleRefresh}
             variant="outline"
             size="lg"
-            className="bg-white/10 text-white border-white/20 hover:bg-white/20 hover:text-white backdrop-blur-md hover:shadow-2xl transition-all duration-300 px-8 py-3"
+            className="bg-white/10 text-white border-white/20 hover:bg-white/20 hover:text-white backdrop-blur-md hover:shadow-2xl transition-all duration-300 px-6 sm:px-8 py-3 text-sm sm:text-base"
             disabled={!weather || !musicRecommendation}
           >
-            <RefreshCw className={`w-5 h-5 mr-2 ${!musicRecommendation ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-4 h-4 sm:w-5 sm:h-5 mr-2 ${!musicRecommendation ? 'animate-spin' : ''}`} />
             {!musicRecommendation ? '음악 불러오는 중...' : '다른 음악 추천받기'}
           </Button>
         </div>
